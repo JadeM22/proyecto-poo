@@ -1,9 +1,8 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-
 from vehiculo import Vehiculo, get_collection as get_collection_vehiculo, actualizar_vehiculo_placa
-from placa import Placa, get_collection as get_collection_placa
+from placa import Placa, get_collection as get_collection_placa, actualizar_placa_vehiculo
 
 load_dotenv()
 URI = os.getenv("URI")
@@ -24,11 +23,20 @@ def main():
     vehiculo_antes = coll_vehiculos.find_one({"_id": id_vehiculo})
     print(vehiculo_antes)
 
-    resultado = actualizar_vehiculo_placa(coll_vehiculos, id_vehiculo, id_placa)
+    resultado_vehiculo = actualizar_vehiculo_placa(coll_vehiculos, id_vehiculo, id_placa)
+
+    resultado_placa = actualizar_placa_vehiculo(coll_placas, id_placa, id_vehiculo)
 
     print("Después de actualizar vehículo:")
     vehiculo_actualizado = coll_vehiculos.find_one({"_id": id_vehiculo})
     print(vehiculo_actualizado)
+
+    print("Placa actualizada:")
+    placa_actualizada = coll_placas.find_one({"_id": id_placa})
+    print(placa_actualizada)
+
+if __name__ == "__main__":
+    main()
 
 
 
