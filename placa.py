@@ -35,3 +35,15 @@ def get_collection(uri, db, col):
     
     return client[db][col]
 
+def actualizar_placa_vehiculo(coll_placas, placa_id, nuevo_vehiculo_id):
+   
+    filtro = {"_id": ObjectId(placa_id)}
+    nuevos_valores = {"$set": {"vehiculo_id": ObjectId(nuevo_vehiculo_id)}}
+    resultado = coll_placas.update_one(filtro, nuevos_valores)
+
+    if resultado.matched_count > 0:
+        print("Placa actualizada con vehículo correctamente.")
+    else:
+        print("No se encontró una placa con ese ID.")
+    return resultado
+
