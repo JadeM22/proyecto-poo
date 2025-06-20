@@ -1,7 +1,6 @@
 import unittest
 import os
 from datetime import datetime
-from bson.objectid import ObjectId
 from dotenv import load_dotenv
 from vehiculo import Vehiculo, get_collection as get_vehiculos, actualizar_vehiculo_placa
 from placa import Placa, get_collection as get_placas, actualizar_placa_vehiculo
