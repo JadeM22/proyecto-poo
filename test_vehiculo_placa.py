@@ -1,50 +1,59 @@
 import os
+import unittest
 from datetime import datetime
+from bson.objectid import ObjectId
+from vehiculo import Vehiculo, get_collection, actualizar_vehiculo_placa
+from placa import Placa, actualizar_placa_vehiculo
 from dotenv import load_dotenv
-from vehiculo import Vehiculo, get_collection as get_collection_vehiculo, actualizar_vehiculo_placa
-from placa import Placa, get_collection as get_collection_placa, actualizar_placa_vehiculo
 
 load_dotenv()
 URI = os.getenv("URI")
 
-def main():
-    coll_vehiculos = get_collection_vehiculo(URI, db="poo_db", col="vehiculos")
-    coll_placas = get_collection_placa(URI, db="poo_db", col="placas")
+class TestModelo(unittest.TestCase):
 
-    vehiculo = Vehiculo(modelo="Toyota Corolla", año=2020, color="Rojo")
-    id_vehiculo = vehiculo.save(coll_vehiculos)
-    print(f"Vehículo guardado con ID: {id_vehiculo}")
+    @classmethod
+    def setUpClass(cls):
+        cls.coll_vehiculos = get_collection(URI, db="test_db", col="vehiculos_test")
+        cls.coll_placas = get_collection(URI, db="test_db", col="placas_test")
 
-    placa = Placa(codigo="ABC123", expira=datetime(2025, 12, 31), pais="Honduras", vehiculo_id=id_vehiculo)
-    id_placa = placa.save(coll_placas)
-    print(f"Placa guardada con ID: {id_placa}")
+    def setUp(self):
+        self.coll_vehiculos.delete_many({})
+        self.coll_placas.delete_many({})
 
-    print("\nAntes de actualizar vehículo:")
-    vehiculo_antes = coll_vehiculos.find_one({"_id": id_vehiculo})
-    print(vehiculo_antes)
+    def test_crear_instancias_y_guardar(self):
+        vehiculo = Vehiculo(modelo="Ford", año=2021, color="Blanco")
+        id_vehiculo = vehiculo.save(self.coll_vehiculos)
+        self.assertIsInstance(id_vehiculo, ObjectId)
 
-    resultado_vehiculo = actualizar_vehiculo_placa(coll_vehiculos, id_vehiculo, id_placa)
-    resultado_placa = actualizar_placa_vehiculo(coll_placas, id_placa, id_vehiculo)
+        placa = Placa(codigo="AAA111", expira=datetime.now(), pais="Honduras", vehiculo_id=id_vehiculo)
+        id_placa = placa.save(self.coll_placas)
+        self.assertIsInstance(id_placa, ObjectId)
 
-    if resultado_vehiculo.matched_count > 0:
-        print(" Vehículo actualizado correctamente con la placa.")
-    else:
-        print(" No se encontró el vehículo para actualizar.")
+        placa_doc = self.coll_placas.find_one({"_id": id_placa})
+        self.assertEqual(placa_doc["vehiculo_id"], id_vehiculo)
 
-    if resultado_placa.matched_count > 0:
-        print(" Placa actualizada correctamente con el vehículo.")
-    else:
-        print(" No se encontró la placa para actualizar.")
+    def test_actualizar_vehiculo_con_id_placa(self):
+       
+        vehiculo = Vehiculo(modelo="Chevrolet", año=2020, color="Rojo")
+        id_vehiculo = vehiculo.save(self.coll_vehiculos)
+        self.assertIsInstance(id_vehiculo, ObjectId)
 
-    print("\nDespués de actualizar vehículo:")
-    vehiculo_actualizado = coll_vehiculos.find_one({"_id": id_vehiculo})
-    print(vehiculo_actualizado)
+        placa = Placa(codigo="BBB222", expira=datetime.now(), pais="Honduras")
+        id_placa = placa.save(self.coll_placas)
+        self.assertIsInstance(id_placa, ObjectId)
 
-    print("\nPlaca actualizada:")
-    placa_actualizada = coll_placas.find_one({"_id": id_placa})
-    print(placa_actualizada)
+        resultado_vehiculo = actualizar_vehiculo_placa(self.coll_vehiculos, id_vehiculo, id_placa)
+        self.assertGreaterEqual(resultado_vehiculo.matched_count, 1)
+
+        resultado_placa = actualizar_placa_vehiculo(self.coll_placas, id_placa, id_vehiculo)
+        self.assertGreaterEqual(resultado_placa.matched_count, 1)
+
+        vehiculo_actualizado = self.coll_vehiculos.find_one({"_id": id_vehiculo})
+        self.assertEqual(vehiculo_actualizado.get("placa_id"), id_placa)
+
+        placa_actualizada = self.coll_placas.find_one({"_id": id_placa})
+        self.assertEqual(placa_actualizada.get("vehiculo_id"), id_vehiculo)
 
 if __name__ == "__main__":
-    main()
-
+    unittest.main()
 
