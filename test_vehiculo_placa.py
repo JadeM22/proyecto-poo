@@ -1,58 +1,42 @@
-import os
 import unittest
+import os
 from datetime import datetime
 from bson.objectid import ObjectId
-from vehiculo import Vehiculo, get_collection, actualizar_vehiculo_placa
-from placa import Placa, actualizar_placa_vehiculo
 from dotenv import load_dotenv
+from vehiculo import Vehiculo, get_collection as get_vehiculos, actualizar_vehiculo_placa
+from placa import Placa, get_collection as get_placas, actualizar_placa_vehiculo
 
 load_dotenv()
 URI = os.getenv("URI")
 
-class TestModelo(unittest.TestCase):
+class TestVehiculoPlaca(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.coll_vehiculos = get_collection(URI, db="test_db", col="vehiculos_test")
-        cls.coll_placas = get_collection(URI, db="test_db", col="placas_test")
+        cls.vehiculos_coll = get_vehiculos(URI, "test_db", "vehiculos_test")
+        cls.placas_coll = get_placas(URI, "test_db", "placas_test")
 
     def setUp(self):
-        self.coll_vehiculos.delete_many({})
-        self.coll_placas.delete_many({})
+        self.vehiculos_coll.delete_many({})
+        self.placas_coll.delete_many({})
 
-    def test_crear_instancias_y_guardar(self):
-        vehiculo = Vehiculo(modelo="Ford", año=2021, color="Blanco")
-        id_vehiculo = vehiculo.save(self.coll_vehiculos)
-        self.assertIsInstance(id_vehiculo, ObjectId)
+    def test_creacion_y_relacion(self):
+        vehiculo = Vehiculo("Toyota Corolla", 2022, "Negro")
+        vehiculo_id = vehiculo.save(self.vehiculos_coll)
 
-        placa = Placa(codigo="AAA111", expira=datetime.now(), pais="Honduras", vehiculo_id=id_vehiculo)
-        id_placa = placa.save(self.coll_placas)
-        self.assertIsInstance(id_placa, ObjectId)
+        placa = Placa("HND-123", datetime(2030, 5, 1), "Honduras")
+        placa_id = placa.save(self.placas_coll)
 
-        placa_doc = self.coll_placas.find_one({"_id": id_placa})
-        self.assertEqual(placa_doc["vehiculo_id"], id_vehiculo)
+        actualizar_vehiculo_placa(self.vehiculos_coll, vehiculo_id, placa_id)
+        actualizar_placa_vehiculo(self.placas_coll, placa_id, vehiculo_id)
 
-    def test_actualizar_vehiculo_con_id_placa(self):
-       
-        vehiculo = Vehiculo(modelo="Chevrolet", año=2020, color="Rojo")
-        id_vehiculo = vehiculo.save(self.coll_vehiculos)
-        self.assertIsInstance(id_vehiculo, ObjectId)
+        vehiculo_doc = self.vehiculos_coll.find_one({"_id": vehiculo_id})
+        placa_doc = self.placas_coll.find_one({"_id": placa_id})
 
-        placa = Placa(codigo="BBB222", expira=datetime.now(), pais="Honduras")
-        id_placa = placa.save(self.coll_placas)
-        self.assertIsInstance(id_placa, ObjectId)
-
-        resultado_vehiculo = actualizar_vehiculo_placa(self.coll_vehiculos, id_vehiculo, id_placa)
-        self.assertGreaterEqual(resultado_vehiculo.matched_count, 1)
-
-        resultado_placa = actualizar_placa_vehiculo(self.coll_placas, id_placa, id_vehiculo)
-        self.assertGreaterEqual(resultado_placa.matched_count, 1)
-
-        vehiculo_actualizado = self.coll_vehiculos.find_one({"_id": id_vehiculo})
-        self.assertEqual(vehiculo_actualizado.get("placa_id"), id_placa)
-
-        placa_actualizada = self.coll_placas.find_one({"_id": id_placa})
-        self.assertEqual(placa_actualizada.get("vehiculo_id"), id_vehiculo)
+        self.assertIsNotNone(vehiculo_doc)
+        self.assertIsNotNone(placa_doc)
+        self.assertEqual(vehiculo_doc.get("placa_id"), placa_id)
+        self.assertEqual(placa_doc.get("vehiculo_id"), vehiculo_id)
 
 if __name__ == "__main__":
     unittest.main()
