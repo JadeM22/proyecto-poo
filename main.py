@@ -13,11 +13,11 @@ def main():
 
     vehiculo = Vehiculo(modelo="Toyota Corolla", año=2020, color="Rojo")
     id_vehiculo = vehiculo.save(coll_vehiculos)
-    print(f"Vehículo guardado con ID: {id_vehiculo}, tipo: {type(id_vehiculo)}")
+    print(f"Vehículo guardado con ID: {id_vehiculo}")
 
     placa = Placa(codigo="ABC123", expira=datetime(2025, 12, 31), pais="Honduras", vehiculo_id=id_vehiculo)
     id_placa = placa.save(coll_placas)
-    print(f"Placa guardada con ID: {id_placa}, tipo: {type(id_placa)}")
+    print(f"Placa guardada con ID: {id_placa}")
 
     print("Antes de actualizar vehículo:")
     vehiculo_antes = coll_vehiculos.find_one({"_id": id_vehiculo})
