@@ -1,15 +1,15 @@
 import os
 from dotenv import load_dotenv
 from datetime import datetime
-from vehiculo import Vehiculo, get_collection as get_collection_vehiculo, actualizar_vehiculo_placa
-from placa import Placa, get_collection as get_collection_placa, actualizar_placa_vehiculo
+from vehiculo import Vehiculo, get_collection as get_vehiculo, actualizar_vehiculo_placa
+from placa import Placa, get_collection as get_placa, actualizar_placa_vehiculo
 
 load_dotenv()
 URI = os.getenv("URI")
 
 def main():
-    coll_vehiculos = get_collection_vehiculo(URI, db="test_db", col="vehiculos_test")
-    coll_placas = get_collection_placa(URI, db="test_db", col="placas_test")
+    coll_vehiculos = get_vehiculo(URI, db="test_db", col="vehiculos_test")
+    coll_placas = get_placa(URI, db="test_db", col="placas_test")
 
     print("INGRESO DE DATOS DEL VEHÍCULO")
     modelo = input("Modelo del vehículo: ")
@@ -50,6 +50,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
