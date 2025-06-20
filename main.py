@@ -19,24 +19,34 @@ def main():
     id_placa = placa.save(coll_placas)
     print(f"Placa guardada con ID: {id_placa}")
 
-    print("Antes de actualizar vehículo:")
+    print("\nAntes de actualizar vehículo:")
     vehiculo_antes = coll_vehiculos.find_one({"_id": id_vehiculo})
     print(vehiculo_antes)
 
     resultado_vehiculo = actualizar_vehiculo_placa(coll_vehiculos, id_vehiculo, id_placa)
-
     resultado_placa = actualizar_placa_vehiculo(coll_placas, id_placa, id_vehiculo)
 
-    print("Después de actualizar vehículo:")
+    if resultado_vehiculo.matched_count > 0:
+        print(" Vehículo actualizado correctamente con la placa.")
+    else:
+        print(" No se encontró el vehículo para actualizar.")
+
+    if resultado_placa.matched_count > 0:
+        print(" Placa actualizada correctamente con el vehículo.")
+    else:
+        print(" No se encontró la placa para actualizar.")
+
+    print("\nDespués de actualizar vehículo:")
     vehiculo_actualizado = coll_vehiculos.find_one({"_id": id_vehiculo})
     print(vehiculo_actualizado)
 
-    print("Placa actualizada:")
+    print("\nPlaca actualizada:")
     placa_actualizada = coll_placas.find_one({"_id": id_placa})
     print(placa_actualizada)
 
 if __name__ == "__main__":
     main()
+
 
 
 
