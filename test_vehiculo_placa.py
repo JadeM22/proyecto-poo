@@ -12,8 +12,8 @@ class TestVehiculoPlaca(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.vehiculos_coll = get_vehiculos(URI, "test_db", "vehiculos_test")
-        cls.placas_coll = get_placas(URI, "test_db", "placas_test")
+        cls.vehiculos_coll = get_vehiculos(URI, db="test_db", col="vehiculos_test")
+        cls.placas_coll = get_placas(URI, db="test_db", col="placas_test")
 
     def setUp(self):
         self.vehiculos_coll.delete_many({})
@@ -29,11 +29,15 @@ class TestVehiculoPlaca(unittest.TestCase):
         actualizar_vehiculo_placa(self.vehiculos_coll, vehiculo_id, placa_id)
         actualizar_placa_vehiculo(self.placas_coll, placa_id, vehiculo_id)
 
+        #busca y recupera los documentos actualizaados
         vehiculo_doc = self.vehiculos_coll.find_one({"_id": vehiculo_id})
         placa_doc = self.placas_coll.find_one({"_id": placa_id})
-
+       
+        #asegura que el documento realmente existe
         self.assertIsNotNone(vehiculo_doc)
         self.assertIsNotNone(placa_doc)
+
+        #comprueba que esten correctamente enlazados
         self.assertEqual(vehiculo_doc.get("placa_id"), placa_id)
         self.assertEqual(placa_doc.get("vehiculo_id"), vehiculo_id)
 
